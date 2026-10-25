@@ -1,0 +1,1024 @@
+LASER CLASH
+
+Complete Game Design Document (GDD)
+
+Studio: Nexeric Games
+Genre: 2D Neon Arcade Shooter / Competitive Strategy
+Platforms: Web browsers and Android
+Orientation: Portrait-first, responsive
+Engine: Phaser 3
+Language: TypeScript
+Mobile packaging: Capacitor
+Game modes: Solo vs AI initially; local and online multiplayer planned
+Visual identity: Minimal monochrome, geometric shapes, luminous white lasers
+Project status: Pre-production / prototype specification
+
+⸻
+
+1. Game Overview
+
+1.1 High Concept
+
+LASER CLASH is a fast-paced geometric laser combat game in which two opposing cores battle across a futuristic arena. Both sides automatically fire their primary weapons while collecting energy, purchasing upgrades, and using tactical special attacks to destroy the opposing core.
+
+Players must balance offensive power, defensive protection, energy generation, and special abilities. A player who invests everything in damage may destroy an opponent quickly but risk being eliminated by a well-timed counterattack.
+
+The experience combines the constant action of an arcade shooter with the strategic progression of an incremental upgrade game.
+
+1.2 Core Pitch
+
+Two geometric cores. One arena. Endless escalation.
+
+Build your firepower, protect your core, unleash devastating lasers, and destroy your opponent before they destroy you.
+
+1.3 Design Pillars
+
+Continuous combat
+
+Both sides should always be doing something. Basic weapons fire automatically, ensuring that the match remains active even while players consider upgrades.
+
+Meaningful decisions
+
+Players must choose between improving damage, shooting faster, generating more energy, strengthening their core, or saving for special attacks.
+
+Visible power progression
+
+Every upgrade should have a noticeable effect on gameplay. Lasers become faster or stronger, shields become more visible, and special attacks create dramatic effects.
+
+Readable minimalism
+
+The arena uses a dark background, geometric shapes, subtle grid lines, and bright laser effects. Every important object must remain visually distinguishable.
+
+Accessible controls
+
+The game must work with a keyboard and mouse on desktop and touch controls on mobile without requiring precision input for routine combat.
+
+Expandable architecture
+
+The initial solo game must use reusable combat systems so that additional weapons, AI behaviors, arenas, and online multiplayer can be introduced without rebuilding the game.
+
+⸻
+
+2. Core Gameplay
+
+2.1 Match Structure
+
+Each match follows this sequence:
+
+1. The player selects a game mode and difficulty.
+2. Both cores enter the arena with equal starting health and basic weapons.
+3. The weapons begin firing automatically.
+4. Players earn energy through damage dealt, pickups, and limited passive income.
+5. Players purchase upgrades and activate special abilities.
+6. Combat becomes progressively more powerful as both sides improve.
+7. The match ends when a core is destroyed or the match reaches its time limit.
+8. The results screen displays the winner, match duration, damage dealt, and rewards.
+
+2.2 The Core
+
+Each player controls a geometric core representing their remaining health and combat capability.
+
+The core has:
+
+* Health.
+* A basic automatic laser weapon.
+* An energy balance.
+* Upgrade levels.
+* Defensive capabilities.
+* Access to special abilities.
+
+The core is the primary target. Reducing its health to zero eliminates that player.
+
+The initial implementation uses stationary cores. This keeps the first version focused on weapon progression, timing, resource management, and combat balance. Movement can be introduced later as an optional advanced mode.
+
+2.3 Starting Statistics
+
+The following are initial balancing targets, not final values.
+
+Property	Initial value
+Core health	100
+Starting energy	100
+Basic laser damage	5
+Basic firing interval	0.8 seconds
+Passive energy income	1 per second
+Match time limit	180 seconds
+Default AI difficulty	Normal
+Simultaneous player count	2
+
+All statistics should be configurable rather than hardcoded throughout the game.
+
+2.4 Automatic Weapons
+
+Basic weapons fire automatically at regular intervals.
+
+Each shot must have:
+
+* A source core.
+* A target or firing direction.
+* Damage value.
+* Projectile speed.
+* Collision radius.
+* Optional penetration capability.
+* Visual and audio effects.
+
+For the stationary-core prototype, basic weapons may use predictable trajectories between the two sides. Special attacks provide the manual aiming and tactical interaction.
+
+The game must avoid creating unnecessary projectiles indefinitely. Projectiles should be removed when they hit a target, leave the arena, or expire.
+
+2.5 Damage and Health
+
+When a valid projectile hits an opponent:
+
+1. The game checks whether the target is alive.
+2. Any applicable shield absorbs or reduces the damage.
+3. Remaining damage reduces core health.
+4. Energy is awarded to the attacker according to the reward rules.
+5. Hit effects and health-bar updates are triggered.
+6. The game checks whether the target has been eliminated.
+
+Health cannot fall below zero. A destroyed core cannot continue firing or purchase upgrades.
+
+If both cores reach zero health during the same simulation step, the result is a draw.
+
+⸻
+
+3. Energy Economy
+
+Energy is the primary currency used to purchase upgrades and activate special abilities.
+
+3.1 Sources of Energy
+
+Players earn energy through:
+
+* Damage dealt to enemy cores.
+* Destroying eligible targets or temporary arena objects, if introduced.
+* Collecting energy pickups.
+* A small passive income stream.
+* Limited comeback rewards when substantially behind.
+
+Damage-based rewards must be capped or normalized to prevent rapid-fire weapons from generating unlimited energy.
+
+Energy pickups should appear at predictable intervals, with both players having a fair opportunity to collect them in any mode where pickup collection is enabled.
+
+3.2 Spending Energy
+
+Energy is spent on:
+
+* Damage upgrades.
+* Fire-rate upgrades.
+* Armor and shields.
+* Energy generation.
+* Special weapons.
+* Temporary combat boosts.
+
+Purchases must be atomic: the game checks affordability, deducts the cost once, and applies the upgrade once.
+
+If a player cannot afford an upgrade, the button remains available but visually indicates insufficient energy.
+
+3.3 Escalating Costs
+
+Upgrade prices increase with each purchase to prevent a single upgrade from becoming overwhelmingly powerful.
+
+Suggested cost formula:
+
+Cost at level L = Base Cost × Growth Rate^L
+
+The first purchase uses the base cost. Later purchases become progressively more expensive.
+
+The growth rate should be configurable for each upgrade category.
+
+3.4 Comeback Mechanics
+
+To prevent a match from becoming predictable after an early lead:
+
+* The trailing player may receive a small, capped passive-energy bonus.
+* Energy pickups should not consistently favor one side.
+* Defensive upgrades must remain useful at every stage.
+* Powerful upgrades must have diminishing returns or level caps.
+
+Comeback bonuses must not be so large that they make winning an early advantage meaningless.
+
+⸻
+
+4. Upgrade System
+
+The initial release includes six permanent in-match upgrade categories.
+
+4.1 Damage
+
+Purpose: Increase damage per basic laser hit.
+
+Initial effect: +20% damage per level.
+
+Base cost: 50 energy.
+
+The damage upgrade should make progress visible through stronger hit effects and a larger damage indicator.
+
+4.2 Fire Rate
+
+Purpose: Reduce the interval between automatic shots.
+
+Initial effect: 15% faster firing per level.
+
+Base cost: 60 energy.
+
+A minimum firing interval must be enforced to prevent extremely high firing rates from overwhelming the simulation or creating excessive visual effects.
+
+4.3 Core Armor
+
+Purpose: Reduce incoming damage.
+
+Initial effect: 10% damage reduction per level.
+
+Base cost: 75 energy.
+
+Armor should have a maximum reduction limit. It must not make a core effectively invulnerable.
+
+4.4 Energy Generator
+
+Purpose: Increase passive energy income.
+
+Initial effect: +0.5 energy per second per level.
+
+Base cost: 80 energy.
+
+The generator encourages long-term investment but should not outperform offensive upgrades in every situation.
+
+4.5 Piercing Laser
+
+Purpose: Allow a special projectile or beam to hit multiple valid targets along its path.
+
+Base cost: 100 energy to unlock.
+
+Additional levels may increase penetration count or reduce the ability’s cooldown.
+
+Piercing must not ignore every defensive mechanic. Shields and other protections still apply unless a particular weapon explicitly overrides them.
+
+4.6 Overdrive
+
+Purpose: Temporarily increase offensive power through a powerful laser attack.
+
+Base unlock cost: 120 energy.
+
+The player aims and activates the beam manually. The attack deals burst damage and may penetrate targets.
+
+Its strength is limited by energy cost, duration, and cooldown.
+
+4.7 Upgrade Rules
+
+* Every upgrade has a level, price, and maximum level where applicable.
+* Prices are displayed before purchase.
+* Successful purchases immediately update the interface.
+* The player receives feedback when an upgrade activates.
+* Dead players cannot purchase upgrades.
+* Purchases cannot produce negative energy.
+* Upgrade effects are applied through a shared combat system.
+* The AI uses the same upgrade rules as the human player.
+
+⸻
+
+5. Special Abilities
+
+Special abilities create tactical moments beyond automatic fire.
+
+5.1 Overdrive Beam
+
+A concentrated beam deals heavy damage to the opposing core.
+
+* Requires an energy payment.
+* Has a cooldown.
+* Can be aimed with mouse or touch.
+* Produces a bright beam, impact flash, and brief screen shake.
+* Cannot be activated while the player is eliminated or unable to pay the cost.
+
+5.2 Pulse Shield
+
+Temporarily protects the core from incoming damage.
+
+* Consumes energy.
+* Lasts for a short duration.
+* Has a cooldown.
+* Displays an obvious shield effect.
+* Prevents damage according to its configured absorption rules.
+
+The shield must not stack indefinitely with itself or other defensive effects.
+
+5.3 Energy Pulse
+
+An expanding shockwave crosses the arena and damages the opponent.
+
+Optional secondary effect: temporarily disrupt the opponent’s firing rate.
+
+The disruption should be brief, clearly signaled, and subject to a cooldown.
+
+5.4 Ability Feedback
+
+Every ability must communicate:
+
+* Whether it is available.
+* Its energy cost.
+* Its cooldown status.
+* Whether activation succeeded.
+* The effect on the opponent.
+
+On mobile, special-attack buttons must be large enough for reliable touch interaction.
+
+⸻
+
+6. Arena Design
+
+6.1 Arena Philosophy
+
+The battlefield is an open arena, not a maze.
+
+The design should remain clean and readable, with enough negative space to make lasers and projectile effects immediately visible.
+
+6.2 Arena Elements
+
+The first arena includes:
+
+* A dark background.
+* A subtle square grid.
+* A core at each opposing side.
+* A central combat area.
+* Energy pickups, if enabled.
+* Projectile trails.
+* Impact particles.
+* Health and energy indicators.
+
+The initial arena does not include destructible barriers. This distinguishes the final concept from the screenshot’s apparent wall-based gameplay and keeps the focus on direct core combat.
+
+6.3 Arena Boundaries
+
+Projectiles and pickups must remain within valid arena bounds or be removed when leaving the play area.
+
+If mobile scaling changes the visible arena dimensions, the simulation must continue using consistent world coordinates.
+
+The HUD should be rendered separately from the combat world so it does not move or scale unpredictably with the arena.
+
+6.4 Future Arena Variations
+
+Potential later additions include:
+
+* Rotating obstacles.
+* Temporary cover.
+* Energy zones.
+* Moving hazards.
+* Gravity wells.
+* Reflective surfaces.
+* Environmental power surges.
+
+These are post-prototype features, not requirements for the first release.
+
+⸻
+
+7. Visual Design
+
+7.1 Art Direction
+
+The game uses a minimal monochrome futuristic style.
+
+Primary colors:
+
+* Black backgrounds.
+* Charcoal arena surfaces.
+* White geometric cores.
+* White or silver projectiles.
+* Bright white laser beams.
+* Gray secondary interface elements.
+
+A restrained secondary accent may be used for warnings, cooldowns, and critical health states, while keeping the overall presentation monochrome.
+
+7.2 Geometric Language
+
+The game uses simple original shapes:
+
+* Squares for cores.
+* Thin lines for laser beams.
+* Small squares or circles for projectiles.
+* Rings for shields.
+* Expanding circles for pulse attacks.
+* Small glowing particles for impacts.
+* Rectangular bars for health and energy.
+
+The core should remain visually distinct from a projectile even at the smallest supported screen size.
+
+7.3 Visual Effects
+
+Required effects:
+
+* Laser glow.
+* Projectile trails.
+* Core hit flashes.
+* Shield activation.
+* Energy pickup collection.
+* Upgrade confirmation.
+* Destruction animation.
+* Victory and defeat transitions.
+* Brief screen shake for powerful attacks.
+
+Effects should be lightweight and should not obscure health indicators or targeting information.
+
+7.4 Animation Principles
+
+Animations should be brief and responsive.
+
+* Basic shots have subtle trails.
+* Powerful attacks create larger impact flashes.
+* Shield activation uses a clear expanding ring.
+* Core destruction uses a short burst of particles.
+* Upgrades briefly highlight the affected statistic.
+
+The game must remain readable when multiple effects occur simultaneously.
+
+⸻
+
+8. User Interface and Screen Flow
+
+8.1 Main Menu
+
+The main menu includes:
+
+* LASER CLASH logo.
+* Play button.
+* Game mode selection.
+* Difficulty selection.
+* Upgrade or cosmetic collection, if unlocked.
+* Settings.
+* Credits and studio information.
+
+The initial menu should be functional rather than overly elaborate.
+
+8.2 Mode Selection
+
+Available modes in the first release:
+
+* Solo vs AI.
+* Difficulty: Easy, Normal, Hard.
+
+Local two-player and online multiplayer should appear only when those modes are implemented and tested.
+
+8.3 Battle HUD
+
+The battle screen includes:
+
+* Enemy health bar.
+* Player health bar.
+* Energy balances.
+* Upgrade buttons and prices.
+* Special-attack controls.
+* Cooldown indicators.
+* Pause button.
+* Match timer.
+
+The interface should be positioned around the arena rather than covering its most important combat area.
+
+8.4 Pause Menu
+
+The pause menu contains:
+
+* Resume.
+* Restart match.
+* Settings.
+* Return to main menu.
+
+Pausing must freeze the local combat simulation, including projectiles, cooldowns, AI actions, and energy generation.
+
+Online matches require a different pause policy because one player’s pause must not automatically freeze the opponent’s game.
+
+8.5 Results Screen
+
+The results screen displays:
+
+* Victory, defeat, or draw.
+* Match duration.
+* Damage dealt.
+* Damage received.
+* Upgrades purchased.
+* Energy spent.
+* Rewards earned.
+* Rematch button.
+* Main menu button.
+
+⸻
+
+9. Controls
+
+9.1 Desktop
+
+* Mouse: aim special attacks.
+* Left-click: activate the selected special attack.
+* Space: activate the selected special attack.
+* Number keys 1–4: quick-buy available upgrades.
+* Escape: pause or resume.
+
+Keyboard shortcuts should not trigger repeatedly while a purchase is still being processed.
+
+9.2 Mobile
+
+* Touch the special-attack button to activate the selected ability.
+* Drag in the arena to aim when the selected ability supports aiming.
+* Tap upgrade buttons to purchase upgrades.
+* Tap the pause button to open the pause menu.
+
+The initial stationary-core mode does not require a movement joystick. If a later mode introduces mobile movement, a virtual joystick can be added without changing the core upgrade system.
+
+9.3 Accessibility
+
+The interface should support:
+
+* Adjustable sound and music volume.
+* Reduced screen shake.
+* Reduced visual effects.
+* Clear text contrast.
+* Large touch targets.
+* Distinguishable cooldown states.
+* A tutorial that explains the first match.
+
+Important information must never be communicated through color alone.
+
+⸻
+
+10. AI Opponent
+
+10.1 AI Objective
+
+The AI must behave like a competitive opponent rather than a scripted target.
+
+It should manage energy, buy upgrades, activate defensive abilities, and use special attacks intelligently.
+
+10.2 AI Decision System
+
+The AI periodically evaluates:
+
+1. Current health and enemy health.
+2. Available energy.
+3. Upgrade prices and levels.
+4. Enemy damage rate.
+5. Current shield state.
+6. Special-attack cooldowns.
+7. Remaining match time.
+
+The AI then chooses an action according to its difficulty and strategic priorities.
+
+10.3 Difficulty Levels
+
+Easy
+
+* Makes slower upgrade decisions.
+* Favors simple offensive upgrades.
+* Uses special attacks infrequently.
+* Occasionally makes suboptimal purchases.
+
+Normal
+
+* Balances offense and defense.
+* Purchases upgrades based on available energy.
+* Uses shields when health is threatened.
+* Uses special attacks when energy and cooldown conditions allow.
+
+Hard
+
+* Evaluates the player’s strategy.
+* Prioritizes counters to the player’s dominant damage source.
+* Uses energy more efficiently.
+* Times defensive and offensive abilities more effectively.
+
+Hard mode must not cheat by receiving hidden damage multipliers unless a future difficulty option explicitly discloses them.
+
+10.4 AI Fairness
+
+The AI and human player must use the same weapon rules, damage calculations, upgrade prices, and cooldown logic.
+
+Difficulty should primarily change decision quality and reaction timing, not secretly change the underlying rules.
+
+⸻
+
+11. Technical Architecture
+
+11.1 Recommended Stack
+
+Game engine: Phaser 3
+Programming language: TypeScript
+Build tooling: Vite
+Web deployment: Static web hosting
+Android packaging: Capacitor
+Version control: Git
+
+This stack supports a single web codebase that can be deployed in browsers and packaged as an Android application.
+
+11.2 Proposed Folder Structure
+
+laser-clash/
+├── public/
+│   ├── assets/
+│   └── favicon.png
+├── src/
+│   ├── main.ts
+│   ├── config/
+│   │   └── gameConfig.ts
+│   ├── scenes/
+│   │   ├── BootScene.ts
+│   │   ├── MenuScene.ts
+│   │   ├── BattleScene.ts
+│   │   └── ResultsScene.ts
+│   ├── combat/
+│   │   ├── Core.ts
+│   │   ├── Laser.ts
+│   │   ├── Projectile.ts
+│   │   ├── DamageSystem.ts
+│   │   └── CombatSimulation.ts
+│   ├── economy/
+│   │   ├── EnergySystem.ts
+│   │   └── UpgradeManager.ts
+│   ├── abilities/
+│   │   ├── OverdriveBeam.ts
+│   │   ├── PulseShield.ts
+│   │   └── EnergyPulse.ts
+│   ├── ai/
+│   │   └── OpponentAI.ts
+│   ├── input/
+│   │   ├── KeyboardInput.ts
+│   │   └── TouchControls.ts
+│   ├── ui/
+│   │   ├── HUD.ts
+│   │   ├── UpgradePanel.ts
+│   │   ├── PauseMenu.ts
+│   │   └── ResultsPanel.ts
+│   ├── audio/
+│   │   └── AudioManager.ts
+│   └── data/
+│       └── balanceConfig.ts
+├── index.html
+├── package.json
+├── tsconfig.json
+└── capacitor.config.ts
+
+11.3 System Responsibilities
+
+CombatSimulation
+
+Coordinates the match state, firing intervals, projectile updates, damage resolution, cooldowns, and win conditions.
+
+Core
+
+Stores a player’s health, energy, upgrades, weapon statistics, and alive or eliminated state.
+
+Projectile
+
+Handles movement, collision, damage attribution, penetration, and cleanup.
+
+EnergySystem
+
+Calculates income, damage rewards, pickup rewards, and energy spending.
+
+UpgradeManager
+
+Validates purchases, calculates prices, and applies upgrade effects.
+
+OpponentAI
+
+Selects strategic actions using the same systems available to the human player.
+
+HUD
+
+Displays the current state without becoming the source of truth for combat data.
+
+Input Controllers
+
+Translate keyboard, mouse, and touch interactions into game actions.
+
+11.4 Simulation Rules
+
+The combat simulation should use a consistent update process:
+
+1. Read valid player actions.
+2. Update weapon firing timers.
+3. Spawn eligible projectiles.
+4. Advance projectiles.
+5. Detect and resolve collisions.
+6. Apply shields, armor, and damage.
+7. Award energy.
+8. Update energy income and cooldowns.
+9. Evaluate AI decisions.
+10. Check match-ending conditions.
+11. Update visual and interface state.
+
+The implementation must prevent the same collision or projectile from applying damage multiple times unintentionally.
+
+For online play, authoritative combat logic must be moved or reproduced on the server, with the server determining valid hits and resource changes.
+
+⸻
+
+12. Data Model
+
+Each player should maintain a state object containing:
+
+* Player identifier.
+* Health and maximum health.
+* Energy.
+* Base damage.
+* Fire interval.
+* Armor level.
+* Generator level.
+* Piercing level.
+* Ability cooldowns.
+* Current shield duration.
+* Match statistics.
+* Alive or eliminated state.
+
+Upgrade definitions should be stored in configuration data rather than duplicated across interface code, combat code, and AI code.
+
+This makes balancing easier and reduces inconsistencies between player and AI behavior.
+
+⸻
+
+13. Game Modes and Multiplayer Roadmap
+
+13.1 Solo vs AI
+
+This is the first playable mode.
+
+The player competes against an AI-controlled core. Both sides use identical combat rules, and the player can select a difficulty level.
+
+13.2 Local Two-Player
+
+A future mode can allow two players to compete on one device or through a shared local setup.
+
+This requires a separate control layout and careful consideration of screen space. It is not required for the initial release.
+
+13.3 Online Multiplayer
+
+Online multiplayer should be implemented after the solo mode has been tested and balanced.
+
+Required systems include:
+
+* Matchmaking.
+* Player identity and session management.
+* Room creation.
+* Authoritative combat simulation.
+* Synchronization of health, energy, projectiles, and upgrades.
+* Disconnect handling.
+* Reconnection or match forfeiture rules.
+* Rate limiting and validation of player actions.
+* Basic protection against modified clients and invalid purchases.
+
+A WebSocket-based backend is suitable for communicating player actions and authoritative match updates.
+
+Firebase or another service may handle authentication, player profiles, and non-critical persistent data, but a trusted game server should determine competitive match outcomes.
+
+13.4 Multiplayer Security
+
+The client must never be trusted to declare its own damage, energy balance, or victory.
+
+The server validates purchases and special-attack costs, enforces cooldowns, and resolves combat. This reduces opportunities for cheating.
+
+⸻
+
+14. Audio Design
+
+The audio should reinforce the minimalist visual style.
+
+Required sound categories:
+
+* Basic laser firing.
+* Projectile impact.
+* Core damage.
+* Upgrade purchase.
+* Energy pickup.
+* Shield activation.
+* Special-attack charge.
+* Special-attack release.
+* Core destruction.
+* Victory and defeat.
+
+Sounds should be short, distinctive, and non-fatiguing. Repeated automatic shots should not create a loud continuous stream of identical effects.
+
+Audio must respect device mute settings and user-configured volume.
+
+⸻
+
+15. Performance and Compatibility
+
+15.1 Web
+
+The game should run in modern desktop and mobile browsers.
+
+Requirements include:
+
+* Responsive canvas sizing.
+* Reliable keyboard and touch input.
+* No dependence on hover for essential controls.
+* Correct handling of browser resizing.
+* Pause or resume behavior when the browser tab loses visibility.
+* Efficient projectile and particle cleanup.
+
+15.2 Android
+
+The Android version should use the same game code through Capacitor.
+
+Testing must include:
+
+* Portrait orientation.
+* Safe areas and system bars.
+* Touch responsiveness.
+* Pause and resume.
+* Backgrounding and returning to the game.
+* Different screen sizes.
+* Low-memory devices.
+* Performance under heavy projectile effects.
+
+The game must not assume that the browser remains active when the app is backgrounded.
+
+15.3 Performance Targets
+
+Aim for 60 frames per second on supported devices, with graceful degradation on lower-powered hardware.
+
+Use object pooling if projectile or particle creation becomes expensive. Limit unnecessary effects and ensure the game can recover from temporary frame drops without corrupting combat state.
+
+⸻
+
+16. Monetization
+
+Monetization should be considered only after the game is stable and enjoyable.
+
+Potential options:
+
+* Optional rewarded ads for cosmetic rewards or a post-match bonus.
+* Interstitial ads between matches, with appropriate frequency limits.
+* Cosmetic core designs.
+* Alternate laser trails.
+* Arena themes.
+* A paid ad-free option, if commercially appropriate.
+
+Ads must not interrupt an active competitive match. Online competitive modes should avoid purchases that give one player a direct combat advantage over another.
+
+All advertising and analytics integrations must comply with applicable platform requirements and privacy policies.
+
+⸻
+
+17. Development Roadmap
+
+Phase 1 — Combat Prototype
+
+Implement:
+
+* Arena rendering.
+* Two cores.
+* Automatic weapons.
+* Projectiles and collisions.
+* Health and damage.
+* Basic win and loss states.
+
+Completion criterion: Two cores can fight until one is destroyed, with correct health and damage calculations.
+
+Phase 2 — Economy and Upgrades
+
+Implement:
+
+* Energy generation.
+* Damage rewards.
+* Upgrade purchases.
+* Escalating costs.
+* Damage, fire rate, and armor upgrades.
+* HUD updates.
+
+Completion criterion: Purchases change combat behavior and never allow invalid spending.
+
+Phase 3 — Special Abilities
+
+Implement:
+
+* Overdrive Beam.
+* Pulse Shield.
+* Energy Pulse.
+* Energy costs.
+* Cooldowns.
+* Effects and feedback.
+
+Completion criterion: Each ability works reliably and creates a meaningful tactical choice.
+
+Phase 4 — AI
+
+Implement:
+
+* Easy, Normal, and Hard decision profiles.
+* Upgrade selection.
+* Energy management.
+* Defensive timing.
+* Special-attack decisions.
+
+Completion criterion: A player can complete repeated matches against the AI at each supported difficulty.
+
+Phase 5 — Interface and Polish
+
+Implement:
+
+* Main menu.
+* Tutorial.
+* Pause and results screens.
+* Audio.
+* Visual effects.
+* Accessibility settings.
+* Persistent settings where appropriate.
+
+Completion criterion: The game feels complete rather than like a developer test scene.
+
+Phase 6 — Mobile and Web Release
+
+Implement:
+
+* Responsive layouts.
+* Touch input.
+* Capacitor integration.
+* Android build configuration.
+* Device testing.
+* Web deployment.
+* Crash and performance testing.
+
+Completion criterion: The same game is playable on the web and Android without platform-specific gameplay bugs.
+
+Phase 7 — Online Multiplayer
+
+Implement matchmaking, authoritative servers, synchronization, disconnect handling, and multiplayer testing.
+
+Completion criterion: Two remote players can complete a match with consistent outcomes and validated combat actions.
+
+⸻
+
+18. Quality Assurance
+
+Before release, test the following:
+
+* A core cannot have negative health.
+* A destroyed core cannot continue attacking.
+* Energy never becomes negative through a valid purchase.
+* Upgrade prices increase correctly.
+* Cooldowns cannot be bypassed by repeated button presses.
+* Shields expire correctly.
+* Projectiles are cleaned up.
+* Simultaneous destruction produces the defined draw result.
+* Restarting resets all match-specific state.
+* Pausing freezes local gameplay.
+* Returning from the background does not create a large unintended simulation jump.
+* Touch controls work without accidental browser gestures.
+* The AI follows the same resource rules as the player.
+* Interface elements remain visible at narrow and wide aspect ratios.
+* Performance remains acceptable during heavy combat.
+
+⸻
+
+19. Initial Release Scope
+
+The first release should include:
+
+* One monochrome arena.
+* Two opposing cores.
+* Automatic basic lasers.
+* Health and energy systems.
+* Six upgrade categories.
+* Three special abilities.
+* Three AI difficulty levels.
+* Main menu, pause menu, and results screen.
+* Keyboard, mouse, and touch input.
+* Responsive web deployment.
+* Android packaging through Capacitor.
+
+The first release does not require:
+
+* Online matchmaking.
+* Player accounts.
+* Ranked ladders.
+* Multiple arena environments.
+* Clan systems.
+* Complex movement mechanics.
+* Paid competitive upgrades.
+
+Keeping the initial scope small is essential to getting a polished, playable game completed.
+
+⸻
+
+20. Definition of Done
+
+LASER CLASH’s first milestone is complete when a player can:
+
+1. Open the game.
+2. Start a solo match.
+3. Fight an AI opponent using automatic lasers.
+4. Earn energy through gameplay.
+5. Purchase upgrades that visibly affect combat.
+6. Use special abilities strategically.
+7. Win or lose through core destruction.
+8. View match statistics.
+9. Restart and play another match.
+10. Complete the same loop in a web browser and on Android.
+
+The game should be easy to understand within the first match, but have enough strategic depth to make players want to improve their upgrade choices and combat timing.
+
+Final Vision
+
+LASER CLASH should feel like a minimalist duel that escalates into spectacular geometric warfare. Its strength comes from the interaction between continuous automatic combat, tactical special attacks, energy management, and visible power progression.
+
+Build the core battle first, prove that the gameplay is satisfying, and expand into multiplayer only after the fundamentals are reliable.
+
+LASER CLASH — Charge. Upgrade. Overpower.

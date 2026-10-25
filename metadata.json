@@ -1,0 +1,6 @@
+{
+  "name": "LASER CLASH",
+  "description": "Hardcore multiplayer laser battle royale for 2–12 players. Real-time server-authoritative combat, lethal lasers, reflector mirror mechanics, and shrinking storm safe zone.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
